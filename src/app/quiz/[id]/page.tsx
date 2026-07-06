@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useParams, useSearchParams } from "next/navigation"
 import Link from "next/link"
+import { useSound } from "@/hooks/useSound"
 
 interface QuizQuestion {
   id: number
@@ -145,6 +146,8 @@ export default function QuizPlayPage() {
   const [timeLeft, setTimeLeft] = useState(30)
   const [quizFinished, setQuizFinished] = useState(false)
   const [streak, setStreak] = useState(0)
+  const { play } = useSound()
+  const fanfarePlayed = useRef(false)
 
   const currentQuestion = questions[currentIndex]
 
@@ -156,6 +159,9 @@ export default function QuizPlayPage() {
         if (prev <= 1) {
           handleTimeout()
           return 0
+        }
+        if (prev <= 5) {
+          play("tick")
         }
         return prev - 1
       })
@@ -176,14 +182,21 @@ export default function QuizPlayPage() {
 
     setSelectedAnswer(optionIndex)
     setShowResult(true)
+    play("click")
 
     const isCorrect = optionIndex === currentQuestion.correct
     if (isCorrect) {
       const timeBonus = Math.ceil(timeLeft / 3)
       setScore((prev) => prev + 10 + timeBonus)
-      setStreak((prev) => prev + 1)
+      setStreak((prev) => {
+        const newStreak = prev + 1
+        if (newStreak >= 2) play("combo")
+        return newStreak
+      })
+      play("correct")
     } else {
       setStreak(0)
+      play("wrong")
     }
 
     setAnswers((prev) => [...prev, { correct: isCorrect }])
@@ -202,6 +215,10 @@ export default function QuizPlayPage() {
   }
 
   if (quizFinished) {
+    if (!fanfarePlayed.current) {
+      fanfarePlayed.current = true
+      setTimeout(() => play("fanfare"), 100)
+    }
     const correctCount = answers.filter((a) => a.correct).length
     const xpEarned = score
     const percent = Math.round((correctCount / questions.length) * 100)

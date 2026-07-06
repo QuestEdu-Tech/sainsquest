@@ -1,3 +1,6 @@
+"use client"
+
+import { useState } from "react"
 import Link from "next/link"
 import type { Topic } from "@/types"
 
@@ -59,6 +62,18 @@ const TOPICS: Topic[] = [
 ]
 
 export default function QuizListPage() {
+  const [selectedGrade, setSelectedGrade] = useState<number | null>(null)
+
+  const filteredTopics = selectedGrade
+    ? TOPICS.filter((t) => t.grade_level === selectedGrade)
+    : TOPICS
+
+  const GRADES = [
+    { level: 4, emoji: "🎒" },
+    { level: 5, emoji: "📘" },
+    { level: 6, emoji: "🎓" },
+  ]
+
   return (
     <div className="mx-auto max-w-lg px-4 pt-8 pb-6">
       <div className="mb-6">
@@ -70,19 +85,38 @@ export default function QuizListPage() {
         </p>
       </div>
 
-      <div className="mb-6 flex gap-2">
-        {[4, 5, 6].map((grade) => (
+      <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
+        <button
+          onClick={() => setSelectedGrade(null)}
+          className={`rounded-xl px-4 py-2 text-sm font-bold transition-all ${
+            selectedGrade === null
+              ? "bg-emerald-500 text-white shadow-md shadow-emerald-200 scale-105"
+              : "bg-white/80 text-gray-500 shadow-sm hover:bg-emerald-100 hover:text-emerald-700"
+          }`}
+        >
+          📚 Semua
+        </button>
+        {GRADES.map(({ level, emoji }) => (
           <button
-            key={grade}
-            className="rounded-xl bg-white/80 px-4 py-2 text-sm font-semibold text-gray-600 shadow-sm transition-all hover:bg-emerald-100 hover:text-emerald-700"
+            key={level}
+            onClick={() => setSelectedGrade(level)}
+            className={`rounded-xl px-4 py-2 text-sm font-bold transition-all ${
+              selectedGrade === level
+                ? "bg-emerald-500 text-white shadow-md shadow-emerald-200 scale-105"
+                : "bg-white/80 text-gray-500 shadow-sm hover:bg-emerald-100 hover:text-emerald-700"
+            }`}
           >
-            Darjah {grade}
+            {emoji} Darjah {level}
           </button>
         ))}
       </div>
 
+      <p className="mb-3 text-xs font-medium text-gray-400">
+        {filteredTopics.length} topik ditemui
+      </p>
+
       <div className="grid gap-3">
-        {TOPICS.map((topic, i) => (
+        {filteredTopics.map((topic, i) => (
           <Link
             key={topic.id}
             href={`/quiz/${topic.id}?name=${encodeURIComponent(topic.name_ms)}`}
