@@ -17,18 +17,26 @@ export function useSound() {
   const playCorrect = useCallback(() => {
     try {
       const ctx = getContext()
-      const o = ctx.createOscillator()
-      const g = ctx.createGain()
-      o.connect(g)
-      g.connect(ctx.destination)
-      o.type = "sine"
-      g.gain.setValueAtTime(0.15, ctx.currentTime)
-      g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3)
-      o.frequency.setValueAtTime(523, ctx.currentTime)
-      o.frequency.setValueAtTime(659, ctx.currentTime + 0.1)
-      o.frequency.setValueAtTime(784, ctx.currentTime + 0.2)
-      o.start(ctx.currentTime)
-      o.stop(ctx.currentTime + 0.3)
+      const notes = [523, 659, 784, 880, 1047, 1319]
+      notes.forEach((freq, i) => {
+        const t = ctx.currentTime + i * 0.06
+        const o = ctx.createOscillator()
+        const o2 = ctx.createOscillator()
+        const g = ctx.createGain()
+        o.connect(g)
+        o2.connect(g)
+        g.connect(ctx.destination)
+        o.type = "triangle"
+        o2.type = "sine"
+        g.gain.setValueAtTime(0.12, t)
+        g.gain.exponentialRampToValueAtTime(0.01, t + 0.25)
+        o.frequency.setValueAtTime(freq, t)
+        o2.frequency.setValueAtTime(freq * 1.5, t)
+        o.start(t)
+        o2.start(t)
+        o.stop(t + 0.25)
+        o2.stop(t + 0.25)
+      })
     } catch {}
   }, [getContext])
 
